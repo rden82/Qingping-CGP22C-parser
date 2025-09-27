@@ -1,0 +1,16 @@
+appdaemon:
+  latitude: 52.379189 # Replace with your latitude
+  longitude: 4.899431 # Replace with your longitude
+  elevation: 2
+  time_zone: Europe/Amsterdam # Replace with your timezone
+  plugins:
+    HASS:
+      type: hass
+      ha_url: http://192.168.1.12:8123
+      token: !secret token
+http:
+  url: http://0.0.0.0:5050
+admin:
+  dashboard: true
+api:
+  process_events: true
