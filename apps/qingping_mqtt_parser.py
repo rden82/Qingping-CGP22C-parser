@@ -59,8 +59,8 @@ class QingpingMqttParser:
                     "temperature_raw": t_raw,
                     "humidity": humidity,
                     "humidity_raw": h_raw,
-                    "co2_ppm": co2_raw,
-                    "co2_raw": co2_raw,
+                    "carbon_dioxide": co2_raw,
+                    "carbon_dioxide_raw": co2_raw,
                     "sensor_offset_bytes": offset
                 })
             else:
@@ -87,73 +87,14 @@ class QingpingMqttParser:
 
     def _find_sensor_triple(self, payload: bytes):
         """
-        Scan payload for consecutive uint16 little-endian words matching:
-            temp_raw in [150..450] (i.e. 15.0–45.0°C ×10)
-            hum_raw in  [100..1000] (i.e. 10%–100% ×10)
-            co2_raw in  [250..5000] ppm
-
         Returns the first (offset_in_bytes, t_raw, h_raw, co2_raw) or None.
         """
-        # L = len(payload)
-        # start after header (4) and some metadata — start search at 6..8 to be safe
-        # start_search = 6
-        # for offset in range(start_search, L - 5):
-        #     try:
-        #         t_raw = int.from_bytes(payload[offset:offset + 2], "little")
-        #         h_raw = int.from_bytes(payload[offset + 2:offset + 4], "little")
-        #         co2_raw = int.from_bytes(payload[offset + 4:offset + 6], "little")
-
-        #         if (150 <= t_raw <= 450) and (100 <= h_raw <= 1000) and (250 <= co2_raw <= 5000):
-        #             if self.debug_mode:
-        #                 self.log(f"Found sensor triple @ {offset}: temp_raw={t_raw}, hum_raw={h_raw}, co2_raw={co2_raw}")
-        #             return offset, t_raw, h_raw, co2_raw
-        #     except Exception:
-        #         continue
-        # return None
         offset = 13  
         t_raw = int.from_bytes(payload[offset:offset + 2], "little")
         h_raw = int.from_bytes(payload[offset + 2:offset + 4], "little")
         co2_raw = int.from_bytes(payload[offset + 4:offset + 6], "little")
 
         return offset, t_raw, h_raw, co2_raw
-
-    # def _fallback_parse(self, payload: bytes, result: Dict[str, Any]):
-    #     """
-    #     Quick fallback for older code: try a couple of conventional offsets.
-    #     This is NOT the preferred method but keeps backward compatibility.
-    #     """
-    #     # Some users previously expected offsets 12, 40 etc.
-    #     try_offsets = [12, 13, 15, 17, 40]
-    #     parsed = {}
-    #     for off in try_offsets:
-    #         if off + 2 <= len(payload):
-    #             try:
-    #                 val = struct.unpack_from("<H", payload, off)[0]
-    #             except Exception:
-    #                 val = None
-    #             parsed[off] = val
-
-    #     # choose something sensible if present
-    #     # prefer an offset that looks like a plausible temperature (150..450)
-    #     for off, raw in parsed.items():
-    #         if raw and 150 <= raw <= 450:
-    #             result["sensor"]["temperature_raw"] = raw
-    #             result["sensor"]["temperature"] = round(raw / 10.0, 1)
-    #             break
-
-    #     # try to find a plausible CO2
-    #     for off, raw in parsed.items():
-    #         if raw and 250 <= raw <= 5000:
-    #             result["sensor"]["co2_ppm"] = raw
-    #             result["sensor"]["co2_raw"] = raw
-    #             break
-
-    #     # humidity (try for 100..1000)
-    #     for off, raw in parsed.items():
-    #         if raw and 100 <= raw <= 1000:
-    #             result["sensor"]["humidity_raw"] = raw
-    #             result["sensor"]["humidity"] = int(raw / 10)
-    #             break
 
     def debug_payload(self, payload: bytes):
         """Enhanced debugging output"""

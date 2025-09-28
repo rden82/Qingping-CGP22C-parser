@@ -24,7 +24,7 @@ class QingpingDevice:
 
     def create_sensors(self):
         """Create Home Assistant sensors for this device."""
-        device_name = f"Qingping {self.addr}"
+        device_name = f"Qingping"
         device_id = f"qingping_{self.addr.lower()}"
         
         device_config = {
@@ -37,32 +37,22 @@ class QingpingDevice:
         sensors = [
             {
                 "entity_id": f"sensor.{device_id}_temperature",
-                "name": f"{device_name} Temperature",
                 "device_class": "temperature",
                 "unit_of_measurement": "°C",
                 "key": "temperature"
             },
             {
-                "entity_id": f"sensor.{device_id}_humidity", 
-                "name": f"{device_name} Humidity",
+                "entity_id": f"sensor.{device_id}_humidity",
                 "device_class": "humidity",
                 "unit_of_measurement": "%",
                 "key": "humidity"
             },
             {
-                "entity_id": f"sensor.{device_id}_co2",
-                "name": f"{device_name} CO2",
+                "entity_id": f"sensor.{device_id}_carbon_dioxide",
                 "device_class": "carbon_dioxide", 
                 "unit_of_measurement": "ppm",
-                "key": "co2_ppm"
+                "key": "carbon_dioxide"
             },
-            {
-                "entity_id": f"sensor.{device_id}_battery",
-                "name": f"{device_name} Battery",
-                "device_class": "battery",
-                "unit_of_measurement": "%",
-                "key": "battery"
-            }
         ]
         
         for sensor in sensors:
@@ -70,7 +60,7 @@ class QingpingDevice:
                 sensor["entity_id"],
                 state="unknown",
                 attributes={
-                    "friendly_name": sensor["name"],
+                    "friendly_name": sensor["key"].title(),
                     "device_class": sensor["device_class"],
                     "unit_of_measurement": sensor["unit_of_measurement"],
                     "device": device_config
@@ -99,7 +89,7 @@ class QingpingDevice:
                     entity_id,
                     state=value,
                     attributes={
-                        "friendly_name": f"Qingping {self.addr} {key.title()}",
+                        "friendly_name": f"{key.title()}",
                         "device_class": key,
                         "unit_of_measurement": self.get_unit(key),
                         "last_updated": self.last_update.isoformat() if self.last_update else datetime.now().isoformat()
@@ -110,13 +100,12 @@ class QingpingDevice:
         units = {
             'temperature': '°C',
             'humidity': '%',
-            'co2_ppm': 'ppm',
-            'battery': '%'
+            'carbon_dioxide': 'ppm',
         }
         return units.get(key, '')
 
     def __str__(self):
         if self.data and 'sensor' in self.data:
             sensor = self.data['sensor']
-            return f"Qingping {self.addr} - Temp: {sensor.get('temperature', 0):.1f}°C, Humidity: {sensor.get('humidity', 0):.1f}%, CO2: {sensor.get('co2_ppm', 0)}ppm, Battery: {sensor.get('battery', 0)}%"
+            return f"Qingping {self.addr} - Temp: {sensor.get('temperature', 0):.1f}°C, humidity: {sensor.get('humidity', 0):.1f}%, CO2: {sensor.get('carbon_dioxide', 0)}ppm"
         return f"Qingping {self.addr} - No data"
